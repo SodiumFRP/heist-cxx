@@ -71,10 +71,10 @@ namespace Set23_Impl {
 
     struct NoOfIndicesVisitor : public boost::static_visitor<int>
     {
-        int operator()(const Leaf1& l1) const {return 1;}
-        int operator()(const Leaf2& l2) const {return 2;}
-        int operator()(const Node2& n2) const {return 3;}
-        int operator()(const Node3& n3) const {return 5;}
+        int operator()(const Leaf1&) const {return 1;}
+        int operator()(const Leaf2&) const {return 2;}
+        int operator()(const Node2&) const {return 3;}
+        int operator()(const Node3&) const {return 5;}
     };
 
     struct Node {
