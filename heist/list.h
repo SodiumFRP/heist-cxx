@@ -4,6 +4,7 @@
 #define _HEIST_LIST_H_
 
 #include <functional>
+#include <boost/intrusive_ptr.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <boost/shared_ptr.hpp>
@@ -13,8 +14,6 @@
 #include <list>
 #include <initializer_list>
 #include <stdexcept>
-
-#include <boost/intrusive_ptr.hpp>
 
 #define HEIST_THROW(exc, msg) throw exc(msg)
 
