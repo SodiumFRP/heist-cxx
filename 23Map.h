@@ -4,8 +4,9 @@
 #define _23MAP_H_
 
 #include "23Set.h"
-#include <iostream>
 
+#include <ostream>
+#include <mutex>
 
 namespace heist {
     template <class K, class A, class L, class MAP>
@@ -68,7 +69,7 @@ namespace heist {
         };
 
         Map_() {}
-        
+
         static MAP fromList(const heist::list<std::tuple<K,A>>& pairs)
         {
             return foldl<MAP, std::tuple<K,A>>([] (const MAP& m, std::tuple<K, A> ka) {
@@ -190,7 +191,7 @@ namespace heist {
             else
                 return *this;
         }
-    
+
         /*!
          * Monoidal append = set union.
          */
@@ -226,13 +227,13 @@ namespace heist {
      * Thread-safe variant of Map.
      */
     template <class K, class A>
-    class Map : public Map_<K, A, PooledLocker, Map<K, A>>
+    class Map : public Map_<K, A, std::mutex, Map<K, A>>
     {
         public:
             Map() {}
-            Map(const Map_<K, A, PooledLocker, Map<K, A>>& other) : Map_<K, A, PooledLocker, Map<K, A>>(other) {}
-            Map(const heist::list<std::pair<K,A>>& pairs) : Map_<K, A, PooledLocker, Map<K, A>>(pairs) {}
-            Map(std::initializer_list<std::pair<K,A>> il) : Map_<K, A, PooledLocker, Map<K, A>>(il) {}
+            Map(const Map_<K, A, std::mutex, Map<K, A>>& other) : Map_<K, A, std::mutex, Map<K, A>>(other) {}
+            Map(const heist::list<std::pair<K,A>>& pairs) : Map_<K, A, std::mutex, Map<K, A>>(pairs) {}
+            Map(std::initializer_list<std::pair<K,A>> il) : Map_<K, A, std::mutex, Map<K, A>>(il) {}
     };
 
     /*!
@@ -300,7 +301,7 @@ namespace heist {
     {
         return foldl(f, a, m.begin());
     }
-    
+
     /*!
      * Fold the map's values into a single value using the specified accumulator function.
      */
@@ -351,4 +352,3 @@ namespace heist {
 };
 
 #endif
-

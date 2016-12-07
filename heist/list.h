@@ -4,6 +4,7 @@
 #define _HEIST_LIST_H_
 
 #include <functional>
+#include <boost/intrusive_ptr.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <boost/shared_ptr.hpp>
@@ -12,10 +13,9 @@
 #include <iostream>
 #include <list>
 #include <initializer_list>
+#include <stdexcept>
 
-#include "AssertionException.h"
-#include <boost/intrusive_ptr.hpp>
-
+#define HEIST_THROW(exc, msg) throw exc(msg)
 
 // ------ New implementation
 
@@ -118,13 +118,13 @@ namespace heist {
             {
                 return (bool)ocons;
             }
-    
+
             /*!
              * Return the head of this list.  Caller must ensure that this list isn't
              * empty before calling, by casting to bool.
              */
             const A& head() const {return ocons->head;}
-    
+
             /*!
              * Return the tail of this list.  Caller must ensure that this list isn't
              * empty before calling, by casting to bool.
@@ -141,7 +141,7 @@ namespace heist {
                 }
                 return !one && !two;
             }
-            
+
             bool operator != (const list<A>& other) const {
                 return !(*this == other);
             }
@@ -329,7 +329,7 @@ namespace heist {
         if (xs)
             return foldl(f, xs.head(), xs.tail());
         else
-            THROW(AssertionException, "can't fold1 an empty set");
+            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
     }
 
     /*!
@@ -341,7 +341,7 @@ namespace heist {
         if (xs)
             return foldr(f, xs.head(), xs.tail());
         else
-            THROW(AssertionException, "can't fold1 an empty set");
+            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
     }
 
     template <class A>
@@ -375,7 +375,7 @@ namespace heist {
     }
 
     /*!
-     * Filter the defined values and put them into the output list. 
+     * Filter the defined values and put them into the output list.
      */
     template <class A>
     list<A> catOptional(list<boost::optional<A>> xs) {
@@ -417,4 +417,3 @@ namespace heist {
 };
 
 #endif
-

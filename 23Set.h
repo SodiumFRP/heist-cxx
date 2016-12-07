@@ -23,15 +23,13 @@
 #ifndef _23SET_H_
 #define _23SET_H_
 
-#include "AssertionException.h"
 #include "FMap.h"
 #include "LightPtr.h"
 #include <heist/list.h>
-#include "Mutex.h"
-#include "PooledLocker.h"
-#include "template_helpers.h"
 
 #include <boost/variant.hpp>
+#include <mutex>
+#include <stdexcept>
 #include <unistd.h>  // for size_t
 
 namespace Set23_Impl {
@@ -52,7 +50,7 @@ namespace Set23_Impl {
         }
         Ptr a;
     };
-    
+
     struct Leaf2 {
         private: Leaf2() : a(Ptr::DUMMY), b(Ptr::DUMMY) {} public:
         Leaf2(const Leaf2& other)
@@ -73,10 +71,10 @@ namespace Set23_Impl {
 
     struct NoOfIndicesVisitor : public boost::static_visitor<int>
     {
-        int operator()(const Leaf1& l1) const {return 1;}
-        int operator()(const Leaf2& l2) const {return 2;}
-        int operator()(const Node2& n2) const {return 3;}
-        int operator()(const Node3& n3) const {return 5;}
+        int operator()(const Leaf1&) const {return 1;}
+        int operator()(const Leaf2&) const {return 2;}
+        int operator()(const Node2&) const {return 3;}
+        int operator()(const Node3&) const {return 5;}
     };
 
     struct Node {
@@ -95,7 +93,7 @@ namespace Set23_Impl {
             boost::recursive_wrapper<Node2>,
             boost::recursive_wrapper<Node3>
         > n;
-        
+
         int getNoOfIndices() const
         {
             return boost::apply_visitor(NoOfIndicesVisitor(), n);
@@ -450,13 +448,13 @@ namespace heist {
      * Thread-safe variant of Set.
      */
     template <class A>
-    class Set : public Set_<A, PooledLocker, Set<A>>
+    class Set : public Set_<A, std::mutex, Set<A>>
     {
         public:
             Set() {}
-            Set(const Set_<A, PooledLocker, Set<A>>& other) : Set_<A, PooledLocker, Set<A>>(other) {}
-            Set(const heist::list<A>& xs) : Set_<A, PooledLocker, Set<A>>(xs) {}
-            Set(std::initializer_list<A> il) : Set_<A, PooledLocker, Set<A>>(il) {}
+            Set(const Set_<A, std::mutex, Set<A>>& other) : Set_<A, std::mutex, Set<A>>(other) {}
+            Set(const heist::list<A>& xs) : Set_<A, std::mutex, Set<A>>(xs) {}
+            Set(std::initializer_list<A> il) : Set_<A, std::mutex, Set<A>>(il) {}
     };
 
     struct NullLocker {
@@ -531,7 +529,7 @@ namespace heist {
         }
         return a;
     }
-    
+
     /*!
      * Fold the set's values into a single value using the specified binary operation.
      */
@@ -540,7 +538,7 @@ namespace heist {
     {
         return foldl(f, a, set.begin());
     }
-    
+
     /*!
      * Fold the set's values into a single value using the specified binary operation.
      */
@@ -562,7 +560,7 @@ namespace heist {
             return foldl(f, it.get(), it.next());
         }
         else
-            THROW(AssertionException, "can't fold1 an empty set");
+            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
     }
 
     /*!
@@ -577,7 +575,7 @@ namespace heist {
             return foldl(f, it.get(), it.next());
         }
         else
-            THROW(AssertionException, "can't fold1 an empty set");
+            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
     }
 
     /*!
@@ -667,4 +665,3 @@ std::ostream& operator << (std::ostream& os, heist::USet<A> set) {
 }
 
 #endif
-

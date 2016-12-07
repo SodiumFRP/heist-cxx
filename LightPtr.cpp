@@ -1,8 +1,8 @@
 // $Id$
 
 #include "LightPtr.h"
-#include "Mutex.h"
-#include <stdio.h>
+
+#include <pthread.h>
 
 namespace heist {
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
@@ -94,4 +94,3 @@ DEFINE_LIGHTPTR(LightPtr, pthread_mutex_t* m = get_lightptr_lock(),
 DEFINE_LIGHTPTR(UnsafeLightPtr,,,)
 
 };
-
