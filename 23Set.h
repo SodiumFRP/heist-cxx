@@ -26,11 +26,9 @@
 #include "FMap.h"
 #include "LightPtr.h"
 #include <heist/list.h>
-#include "Mutex.h"
-#include "PooledLocker.h"
-#include "template_helpers.h"
 
 #include <boost/variant.hpp>
+#include <mutex>
 #include <stdexcept>
 #include <unistd.h>  // for size_t
 
@@ -450,13 +448,13 @@ namespace heist {
      * Thread-safe variant of Set.
      */
     template <class A>
-    class Set : public Set_<A, PooledLocker, Set<A>>
+    class Set : public Set_<A, std::mutex, Set<A>>
     {
         public:
             Set() {}
-            Set(const Set_<A, PooledLocker, Set<A>>& other) : Set_<A, PooledLocker, Set<A>>(other) {}
-            Set(const heist::list<A>& xs) : Set_<A, PooledLocker, Set<A>>(xs) {}
-            Set(std::initializer_list<A> il) : Set_<A, PooledLocker, Set<A>>(il) {}
+            Set(const Set_<A, std::mutex, Set<A>>& other) : Set_<A, std::mutex, Set<A>>(other) {}
+            Set(const heist::list<A>& xs) : Set_<A, std::mutex, Set<A>>(xs) {}
+            Set(std::initializer_list<A> il) : Set_<A, std::mutex, Set<A>>(il) {}
     };
 
     struct NullLocker {

@@ -1,8 +1,8 @@
 // $Id$
 
 #include "LightPtr.h"
-#include "Mutex.h"
-#include <stdio.h>
+
+#include <pthread.h>
 
 namespace heist {
 #if defined(HAVE_PTHREAD_SPIN_LOCK)

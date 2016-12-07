@@ -4,8 +4,9 @@
 #define _23MAP_H_
 
 #include "23Set.h"
-#include <iostream>
 
+#include <ostream>
+#include <mutex>
 
 namespace heist {
     template <class K, class A, class L, class MAP>
@@ -226,13 +227,13 @@ namespace heist {
      * Thread-safe variant of Map.
      */
     template <class K, class A>
-    class Map : public Map_<K, A, PooledLocker, Map<K, A>>
+    class Map : public Map_<K, A, std::mutex, Map<K, A>>
     {
         public:
             Map() {}
-            Map(const Map_<K, A, PooledLocker, Map<K, A>>& other) : Map_<K, A, PooledLocker, Map<K, A>>(other) {}
-            Map(const heist::list<std::pair<K,A>>& pairs) : Map_<K, A, PooledLocker, Map<K, A>>(pairs) {}
-            Map(std::initializer_list<std::pair<K,A>> il) : Map_<K, A, PooledLocker, Map<K, A>>(il) {}
+            Map(const Map_<K, A, std::mutex, Map<K, A>>& other) : Map_<K, A, std::mutex, Map<K, A>>(other) {}
+            Map(const heist::list<std::pair<K,A>>& pairs) : Map_<K, A, std::mutex, Map<K, A>>(pairs) {}
+            Map(std::initializer_list<std::pair<K,A>> il) : Map_<K, A, std::mutex, Map<K, A>>(il) {}
     };
 
     /*!
