@@ -52,7 +52,7 @@ namespace Set23_Impl {
         }
         Ptr a;
     };
-    
+
     struct Leaf2 {
         private: Leaf2() : a(Ptr::DUMMY), b(Ptr::DUMMY) {} public:
         Leaf2(const Leaf2& other)
@@ -95,7 +95,7 @@ namespace Set23_Impl {
             boost::recursive_wrapper<Node2>,
             boost::recursive_wrapper<Node3>
         > n;
-        
+
         int getNoOfIndices() const
         {
             return boost::apply_visitor(NoOfIndicesVisitor(), n);
@@ -531,7 +531,7 @@ namespace heist {
         }
         return a;
     }
-    
+
     /*!
      * Fold the set's values into a single value using the specified binary operation.
      */
@@ -540,7 +540,7 @@ namespace heist {
     {
         return foldl(f, a, set.begin());
     }
-    
+
     /*!
      * Fold the set's values into a single value using the specified binary operation.
      */
@@ -667,4 +667,3 @@ std::ostream& operator << (std::ostream& os, heist::USet<A> set) {
 }
 
 #endif
-

@@ -94,4 +94,3 @@ DEFINE_LIGHTPTR(LightPtr, pthread_mutex_t* m = get_lightptr_lock(),
 DEFINE_LIGHTPTR(UnsafeLightPtr,,,)
 
 };
-

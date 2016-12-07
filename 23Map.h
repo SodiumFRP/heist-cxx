@@ -68,7 +68,7 @@ namespace heist {
         };
 
         Map_() {}
-        
+
         static MAP fromList(const heist::list<std::tuple<K,A>>& pairs)
         {
             return foldl<MAP, std::tuple<K,A>>([] (const MAP& m, std::tuple<K, A> ka) {
@@ -190,7 +190,7 @@ namespace heist {
             else
                 return *this;
         }
-    
+
         /*!
          * Monoidal append = set union.
          */
@@ -300,7 +300,7 @@ namespace heist {
     {
         return foldl(f, a, m.begin());
     }
-    
+
     /*!
      * Fold the map's values into a single value using the specified accumulator function.
      */
@@ -351,4 +351,3 @@ namespace heist {
 };
 
 #endif
-

@@ -119,13 +119,13 @@ namespace heist {
             {
                 return (bool)ocons;
             }
-    
+
             /*!
              * Return the head of this list.  Caller must ensure that this list isn't
              * empty before calling, by casting to bool.
              */
             const A& head() const {return ocons->head;}
-    
+
             /*!
              * Return the tail of this list.  Caller must ensure that this list isn't
              * empty before calling, by casting to bool.
@@ -142,7 +142,7 @@ namespace heist {
                 }
                 return !one && !two;
             }
-            
+
             bool operator != (const list<A>& other) const {
                 return !(*this == other);
             }
@@ -376,7 +376,7 @@ namespace heist {
     }
 
     /*!
-     * Filter the defined values and put them into the output list. 
+     * Filter the defined values and put them into the output list.
      */
     template <class A>
     list<A> catOptional(list<boost::optional<A>> xs) {
@@ -418,4 +418,3 @@ namespace heist {
 };
 
 #endif
-

@@ -655,4 +655,3 @@ namespace Set23_Impl {
         }
     }
 };
-
