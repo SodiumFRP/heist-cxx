@@ -12,10 +12,11 @@
 #include <iostream>
 #include <list>
 #include <initializer_list>
+#include <stdexcept>
 
-#include "AssertionException.h"
 #include <boost/intrusive_ptr.hpp>
 
+#define HEIST_THROW(exc, msg) throw exc(msg)
 
 // ------ New implementation
 
@@ -329,7 +330,7 @@ namespace heist {
         if (xs)
             return foldl(f, xs.head(), xs.tail());
         else
-            THROW(AssertionException, "can't fold1 an empty set");
+            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
     }
 
     /*!
@@ -341,7 +342,7 @@ namespace heist {
         if (xs)
             return foldr(f, xs.head(), xs.tail());
         else
-            THROW(AssertionException, "can't fold1 an empty set");
+            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
     }
 
     template <class A>

@@ -1,8 +1,6 @@
 // $Id$
 
 #include "23Set.h"
-#include "Exception.h"
-
 
 namespace Set23_Impl {
 
@@ -210,7 +208,7 @@ namespace Set23_Impl {
                             Position(Node(Node2(n2->p, n2->a, pNode)), 0)
                             %= stack.tail().tail()
                         ).unwind();
-                    default: THROW(AssertionException,"Iterator::unwind() impossible");
+                    default: HEIST_THROW(std::invalid_argument,"Iterator::unwind() impossible");
                 }
             }
             else {
@@ -229,7 +227,7 @@ namespace Set23_Impl {
                             Position(Node(Node3(n3.p, n3.a, n3.q, n3.b, pNode)), 0)
                             %= stack.tail().tail()
                         ).unwind();
-                    default: THROW(AssertionException,"Iterator::unwind() impossible");
+                    default: HEIST_THROW(std::invalid_argument,"Iterator::unwind() impossible");
                 }
             }
         }
@@ -430,7 +428,7 @@ namespace Set23_Impl {
                         );
                     }
                 default:
-                    THROW(AssertionException, "bubble impossible");
+                    HEIST_THROW(std::logic_error, "bubble impossible");
             }  // switch
         }
     }

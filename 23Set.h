@@ -23,7 +23,6 @@
 #ifndef _23SET_H_
 #define _23SET_H_
 
-#include "AssertionException.h"
 #include "FMap.h"
 #include "LightPtr.h"
 #include <heist/list.h>
@@ -32,6 +31,7 @@
 #include "template_helpers.h"
 
 #include <boost/variant.hpp>
+#include <stdexcept>
 #include <unistd.h>  // for size_t
 
 namespace Set23_Impl {
@@ -562,7 +562,7 @@ namespace heist {
             return foldl(f, it.get(), it.next());
         }
         else
-            THROW(AssertionException, "can't fold1 an empty set");
+            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
     }
 
     /*!
@@ -577,7 +577,7 @@ namespace heist {
             return foldl(f, it.get(), it.next());
         }
         else
-            THROW(AssertionException, "can't fold1 an empty set");
+            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
     }
 
     /*!
