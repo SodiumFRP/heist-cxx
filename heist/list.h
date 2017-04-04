@@ -1,21 +1,24 @@
-// $Id$
-
+/**
+ * Heist immutable/functional data structure library
+ * Copyright (C) 2016-2017 by Stephen Blackheath
+ * Released under a BSD3 licence
+ */
 #ifndef _HEIST_LIST_H_
 #define _HEIST_LIST_H_
 
 #include <functional>
-#include <boost/intrusive_ptr.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <boost/shared_ptr.hpp>
-#include <sodium/lock_pool.h>
+#include <boost/intrusive_ptr.hpp>
+#include <mutex>
 #include <vector>
 #include <iostream>
 #include <list>
 #include <initializer_list>
-#include <stdexcept>
+#include <heist/lock_pool.h>
 
-#define HEIST_THROW(exc, msg) throw exc(msg)
+
 
 // ------ New implementation
 
@@ -27,7 +30,7 @@ namespace heist {
     template <class A>
     void intrusive_ptr_add_ref(cons<A>* p)
     {
-        sodium::impl::spin_lock* l = sodium::impl::spin_get_and_lock(p);
+        heist::impl::spin_lock* l = heist::impl::spin_get_and_lock(p);
         p->ref_count++;
         l->unlock();
     }
@@ -35,7 +38,7 @@ namespace heist {
     template <class A>
     void intrusive_ptr_release(cons<A>* p)
     {
-        sodium::impl::spin_lock* l = sodium::impl::spin_get_and_lock(p);
+        heist::impl::spin_lock* l = heist::impl::spin_get_and_lock(p);
         if (--p->ref_count == 0) {
             l->unlock();
             delete p;
@@ -118,13 +121,13 @@ namespace heist {
             {
                 return (bool)ocons;
             }
-
+    
             /*!
              * Return the head of this list.  Caller must ensure that this list isn't
              * empty before calling, by casting to bool.
              */
             const A& head() const {return ocons->head;}
-
+    
             /*!
              * Return the tail of this list.  Caller must ensure that this list isn't
              * empty before calling, by casting to bool.
@@ -141,7 +144,7 @@ namespace heist {
                 }
                 return !one && !two;
             }
-
+            
             bool operator != (const list<A>& other) const {
                 return !(*this == other);
             }
@@ -255,6 +258,74 @@ namespace heist {
                 }
                 return out;
             }
+
+            bool contains(const A& a) const
+            {
+                auto xs = *this;
+                while (xs) {
+                    if (xs.head() == a)
+                        return true;
+                    xs = xs.tail();
+                }
+                return false;
+            }
+
+            template <class B>
+            B foldl(std::function<B(const B&,const A&)> f, B b) const
+            {
+                auto xs = *this;
+                while (xs) {
+                    b = f(b, xs.head());
+                    xs = xs.tail();
+                }
+                return b;
+            }
+
+            template <class B>
+            B foldr(std::function<B(const A&,const B&)> f, B b) const
+            {
+                if (*this)
+                    return f(this->head(), this->tail().foldr(f, b));
+                else
+                    return b;
+            }
+
+            /*!
+             * Fold a non-empty set with no initial value.
+             */
+            A foldl1(std::function<A(const A&, const A&)> f) const
+            {
+                assert(*this);
+                return foldl(f, this->head(), this->tail());
+            }
+
+            /*!
+             * Fold a non-empty set with no initial value.
+             */
+            A foldr1(std::function<A(const A&, const A&)> f) const
+            {
+                assert(*this);
+                return foldr(f, this->head(), this->tail());
+            }
+
+            /*!
+             * Return the lists of items from xs that do and do not match the predicate,
+             * respectively.
+             */
+            std::tuple<list<A>, list<A>> partition(std::function<bool(const A&)> pred) const
+            {
+                auto xs = *this;
+                list<A> ins;
+                list<A> outs;
+                while (xs) {
+                    if (pred(xs.head()))
+                        ins = xs.head() %= ins;
+                    else
+                        outs = xs.head() %= outs;
+                    xs = xs.tail();
+                }
+                return std::make_tuple(ins.reverse(), outs.reverse());
+            }
     };
 
     /*!
@@ -291,101 +362,28 @@ namespace heist {
         return os;
     }
 
-    template <class A, class B>
-    A foldl(std::function<A(const A&,const B&)> f, A a, list<B> xs)
-    {
-        while (xs) {
-            a = f(a, xs.head());
-            xs = xs.tail();
-        }
-        return a;
-    }
-
-    template <class A, class B>
-    A foldr(std::function<A(const B&,const A&)> f, A a, list<B> xs)
-    {
-        if (xs)
-            return f(xs.head(), foldr(f, a, xs.tail()));
-        else
-            return a;
-    }
-
     /*!
      * Concatenate the list of lists into a single list.
      */
     template <class A>
     list<A> concat(list<list<A>> lists) {
-        return foldr<list<A>, list<A>>([] (const list<A>& a, const list<A>& b) {
+        return lists.template foldr<list<A>>([] (const list<A>& a, const list<A>& b) {
                 return a + b;
-            }, list<A>(), lists);
+            }, list<A>());
     }
 
     /*!
-     * Fold a non-empty set with no initial value.
+     * Filter the defined values and put them into the output list. 
      */
     template <class A>
-    A foldl1(std::function<A(const A&, const A&)> f, list<A> xs)
-    {
-        if (xs)
-            return foldl(f, xs.head(), xs.tail());
-        else
-            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
-    }
-
-    /*!
-     * Fold a non-empty set with no initial value.
-     */
-    template <class A>
-    A foldr1(std::function<A(const A&, const A&)> f, list<A> xs)
-    {
-        if (xs)
-            return foldr(f, xs.head(), xs.tail());
-        else
-            HEIST_THROW(std::invalid_argument, "can't fold1 an empty set");
-    }
-
-    template <class A>
-    bool elem(const A& a, list<A> xs)
-    {
-        while (xs) {
-            if (xs.head() == a)
-                return true;
-            xs = xs.tail();
-        }
-        return false;
-    }
-
-    /*!
-     * Return the lists of items from xs that do and do not match the predicate,
-     * respectively.
-     */
-    template <class A>
-    std::tuple<list<A>, list<A>> partition(std::function<bool(const A&)> pred, list<A> xs)
-    {
-        list<A> ins;
-        list<A> outs;
-        while (xs) {
-            if (pred(xs.head()))
-                ins = xs.head() %= ins;
-            else
-                outs = xs.head() %= outs;
-            xs = xs.tail();
-        }
-        return std::make_tuple(ins.reverse(), outs.reverse());
-    }
-
-    /*!
-     * Filter the defined values and put them into the output list.
-     */
-    template <class A>
-    list<A> catOptional(list<boost::optional<A>> xs) {
+    list<A> cat_optional(list<boost::optional<A>> xs) {
         return
             xs.filter([] (const boost::optional<A>& oa) { return (bool)oa; })
               .map([] (boost::optional<A> oa) { return oa.get(); });
     }
 
     template <class A, class B, class C>
-    list<C> zipWith(std::function<C(const A&,const B&)> f, list<A> as, list<B> bs)
+    list<C> zip_with(std::function<C(const A&,const B&)> f, list<A> as, list<B> bs)
     {
         list<C> cs;
         while (as && bs) {
@@ -414,6 +412,7 @@ namespace heist {
                 tuples.map([] (const std::tuple<A,B,C>& t) {return std::get<2>(t);})
             );
     }
-};
+}
 
 #endif
+

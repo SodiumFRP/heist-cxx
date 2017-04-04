@@ -1,7 +1,10 @@
-// $Id$
-
-#ifndef _LIGHTPTR_H_
-#define _LIGHTPTR_H_
+/**
+ * Heist immutable/functional data structure library
+ * Copyright (C) 2016-2017 by Stephen Blackheath
+ * Released under a BSD3 licence
+ */
+#ifndef _HEIST_LIGHT_PTR_H_
+#define _HEIST_LIGHT_PTR_H_
 
 namespace heist {
     template <class A>
@@ -44,9 +47,9 @@ namespace heist {
             template <class A> inline const A* castPtr(A*) const {return (A*)value;} \
         };
 
-    DECLARE_LIGHTPTR(LightPtr)        // Thread-safe variant
-    DECLARE_LIGHTPTR(UnsafeLightPtr)  // Non-thread-safe variant
-};
+    DECLARE_LIGHTPTR(light_ptr)        // Thread-safe variant
+    DECLARE_LIGHTPTR(unsafe_light_ptr)  // Non-thread-safe variant
+}
 
 #endif
 
