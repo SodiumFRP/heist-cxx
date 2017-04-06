@@ -211,7 +211,7 @@ namespace heist {
                 [] (const entry& e) {return e.k;});
         }
 
-        heist::list<A> elems() const {
+        heist::list<A> values() const {
             return entries.to_list().map(
                 [] (const entry& e) {return e.oa.get();});
         }
@@ -262,6 +262,23 @@ namespace heist {
         map<K, A> operator + (const map<K, A>& other) const {
             return other.foldl<map<K, A>>([] (const map<K, A>& m, const K& k, const A& a)
                       {return m.insert(k, a);}, *this);
+        }
+
+        /*!
+         * Return this map minus the specified keys.
+         */
+        map<K, A> operator - (const list<K>& keys) const {
+            return keys.foldl<map<K,A>>(
+                [] (const map<K, A>& m, const K& key) {
+                    return m.remove(key);
+                }, *this);
+        }
+
+        /*!
+         * Return this map minus the keys from the second map.
+         */
+        map<K, A> operator - (const map<K, A>& other) const {
+            return *this - other.keys();
         }
     };
 

@@ -3,52 +3,62 @@
  * Copyright (C) 2016-2017 by Stephen Blackheath
  * Released under a BSD3 licence
  */
-#ifndef _HEIST_LIGHT_PTR_H_
-#define _HEIST_LIGHT_PTR_H_
+#ifndef _HEIST_LIGHTPTR_H_
+#define _HEIST_LIGHTPTR_H_
+
+#include <utility>
 
 namespace heist {
-    template <class A>
+    template <typename A>
     void deleter(void* a0)
     {
         delete (A*)a0;
     }
 
     namespace impl {
-        typedef void (*Deleter)(void*);
-        struct Count {
-            Count(
-                int count,
-                Deleter del
-            ) : count(count), del(del) {}
-            int count;
-            Deleter del;
+        typedef void (*deleter)(void*);
+        struct count {
+            count(
+                int c_,
+                deleter del_
+            ) : c(c_), del(del_) {}
+            int c;
+            deleter del;
         };
     };
 
     /*!
      * An untyped reference-counting smart pointer, thread-safe variant.
      */
-    #define DECLARE_LIGHTPTR(Name) \
-        struct Name { \
-            static Name DUMMY;  /* A null value that does not work, but can be used to */ \
-                                    /* satisfy the compiler for unusable private constructors */ \
-            Name(); \
-            Name(const Name& other); \
-            template <class A> static inline Name create(const A& a) { \
-                return Name(new A(a), deleter<A>); \
+    #define HEIST_DECLARE_LIGHTPTR(name) \
+        struct name { \
+            static name DUMMY;  /* A null value that does not work, but can be used to */ \
+                                /* satisfy the compiler for unusable private constructors */ \
+            name(); \
+            name(const name& other); \
+            name(name&& other) : value(other.value), count(other.count) \
+            { \
+                other.value = nullptr; \
+                other.count = nullptr; \
             } \
-            Name(void* value, impl::Deleter del); \
-            ~Name(); \
-            Name& operator = (const Name& other); \
+            template <typename A> static inline name create(const A& a) { \
+                return name(new A(a), deleter<A>); \
+            } \
+            template <typename A> static inline name create(A&& a) { \
+                return name(new A(std::move(a)), deleter<A>); \
+            } \
+            name(void* value, impl::deleter del); \
+            ~name(); \
+            name& operator = (const name& other); \
             void* value; \
-            impl::Count* count; \
+            impl::count* count; \
          \
-            template <class A> inline A* castPtr(A*) {return (A*)value;} \
-            template <class A> inline const A* castPtr(A*) const {return (A*)value;} \
+            template <typename A> inline A* cast_ptr(A*) {return (A*)value;} \
+            template <typename A> inline const A* cast_ptr(A*) const {return (A*)value;} \
         };
 
-    DECLARE_LIGHTPTR(light_ptr)        // Thread-safe variant
-    DECLARE_LIGHTPTR(unsafe_light_ptr)  // Non-thread-safe variant
+    HEIST_DECLARE_LIGHTPTR(light_ptr)        // Thread-safe variant
+    HEIST_DECLARE_LIGHTPTR(unsafe_light_ptr)  // Non-thread-safe variant
 }
 
 #endif

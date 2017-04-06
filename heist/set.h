@@ -178,8 +178,8 @@ namespace heist {
         template <class A>
         int comparator(const Ptr& a0, const Ptr& b0)
         {
-            const A& a = *a0.castPtr<A>(NULL);
-            const A& b = *b0.castPtr<A>(NULL);
+            const A& a = *a0.cast_ptr<A>(NULL);
+            const A& b = *b0.cast_ptr<A>(NULL);
             if (a < b)  return -1; else
             if (a == b) return 0; else
                         return 1;

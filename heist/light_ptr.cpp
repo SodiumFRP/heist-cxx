@@ -4,18 +4,10 @@
  * Released under a BSD3 licence
  */
 #include <heist/light_ptr.h>
-#include <mutex>
+#include <heist/lock_pool.h>
 
 namespace heist {
-    static std::mutex* get_lightptr_lock()
-    {
-        static std::mutex* mt;
-        if (mt == nullptr)
-            mt = new std::mutex;
-        return mt;
-    }
-
-#define DEFINE_LIGHTPTR(Name, GET_LOCK, LOCK, UNLOCK) \
+#define HEIST_DEFINE_LIGHTPTR(Name, GET_AND_LOCK, UNLOCK) \
     Name::Name() \
         : value(nullptr), count(nullptr) \
     { \
@@ -23,24 +15,22 @@ namespace heist {
      \
     Name Name::DUMMY; \
      \
-    Name::Name(void* value, impl::Deleter del) \
-        : value(value), count(new impl::Count(1, del)) \
+    Name::Name(void* value_, impl::deleter del_) \
+        : value(value_), count(new impl::count(1, del_)) \
     { \
     } \
      \
     Name::Name(const Name& other) \
         : value(other.value), count(other.count) \
     { \
-        GET_LOCK; \
-        LOCK; \
-        count->count++; \
+        GET_AND_LOCK; \
+        count->c++; \
         UNLOCK; \
     } \
-     \
+    \
     Name::~Name() { \
-        GET_LOCK; \
-        LOCK; \
-        if (count != nullptr && --count->count == 0) { \
+        GET_AND_LOCK; \
+        if (count != nullptr && --count->c == 0) { \
             UNLOCK; \
             count->del(value); delete count; \
         } \
@@ -50,26 +40,32 @@ namespace heist {
     } \
      \
     Name& Name::operator = (const Name& other) { \
-        GET_LOCK; \
-        LOCK; \
-        if (--count->count == 0) { \
-            UNLOCK; \
-            count->del(value); delete count; \
+        if (count != other.count) { \
+            { \
+                GET_AND_LOCK; \
+                if (--count->c == 0) { \
+                    UNLOCK; \
+                    count->del(value); delete count; \
+                } \
+                else { \
+                    UNLOCK; \
+                } \
+            } \
+            value = other.value; \
+            count = other.count; \
+            { \
+                GET_AND_LOCK; \
+                count->c++; \
+                UNLOCK; \
+            } \
         } \
-        else { \
-            UNLOCK; \
-        } \
-        value = other.value; \
-        count = other.count; \
-        LOCK; \
-        count->count++; \
-        UNLOCK; \
         return *this; \
     }
 
-DEFINE_LIGHTPTR(light_ptr, std::mutex* m = get_lightptr_lock(),
-                          m->lock(),
-                          m->unlock())
-DEFINE_LIGHTPTR(unsafe_light_ptr,,,)
+HEIST_DEFINE_LIGHTPTR(light_ptr, impl::spin_lock* l = impl::spin_get_and_lock(this->value),
+                          l->unlock())
 
-}
+HEIST_DEFINE_LIGHTPTR(unsafe_light_ptr,,)
+
+};
+
