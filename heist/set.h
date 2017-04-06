@@ -215,8 +215,7 @@ namespace heist {
         impl::pooled_locker locker;
         boost::optional<heist::impl::Node> r;
 
-    public:
-        static set fromList(heist::list<A> xs) {
+        static set from_list(heist::list<A> xs) {
             set<A> s;
             while (xs) {
                 s = s.insert(xs.head());
@@ -225,9 +224,10 @@ namespace heist {
             return set(s);
         }
 
+    public:
         set() {}
         set(const heist::list<A>& xs) {
-            *this = fromList(xs);
+            *this = from_list(xs);
         }
         set(std::initializer_list<A> il) {
             set<A> s;
