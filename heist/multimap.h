@@ -3,71 +3,83 @@
  * Copyright (C) 2016-2017 by Stephen Blackheath
  * Released under a BSD3 licence
  */
-#ifndef _HEIST_MAP_H_
-#define _HEIST_MAP_H_
+#ifndef _HEIST_MULTIMAP_H_
+#define _HEIST_MULTIMAP_H_
 
 #include <heist/set.h>
+#include <heist/supply.h>
 #include <iostream>
 
 
 namespace heist {
     template <class K, class A>
-    class map
+    class multimap
     {
     private:
         struct entry {
-            entry(K k, A a)
+            entry(K k, long long unique, A a)
             : k(k),
+              unique(unique),
               oa(boost::make_optional(a))
             { }
             entry(K k)  // For searching
-            : k(k)
+            : k(k),
+              unique(0)
             { }
             K k;
             long long unique;
             boost::optional<A> oa;
 
-            bool operator < (const entry& other) const { return k < other.k; }
-            bool operator == (const entry& other) const { return k == other.k; }
+            bool operator < (const entry& other) const {
+                return k == other.k ? unique < other.unique
+                                    : k < other.k;
+            }
+            bool operator == (const entry& other) const {
+                return k == other.k && unique == other.unique;
+            }
         };
 
         set<entry> entries;
+        supply<long long> sup;     // We assume this supply's value has already been used,
+                                   // so it must always be split before using.
 
-        map(const set<entry>& entries)
-            : entries(entries)
+        multimap(const set<entry>& entries, const supply<long long>& sup)
+            : entries(entries),
+              sup(sup)
         {
         }
 
-        static map<K, A> from_list(const heist::list<std::tuple<K,A>>& pairs)
+        static multimap<K, A> from_list(const heist::list<std::tuple<K,A>>& pairs)
         {
-            return pairs.template foldl<map<K, A>>([] (const map<K, A>& m, const std::tuple<K, A>& ka) {
+            return pairs.template foldl<multimap<K, A>>([] (const multimap<K, A>& m, const std::tuple<K, A>& ka) {
                     return m.insert(std::get<0>(ka), std::get<1>(ka));
-                }, map<K, A>());
+                }, multimap<K, A>());
         }
 
-        static map<K, A> from_pairs(const heist::list<std::pair<K,A>>& pairs)
+        static multimap<K, A> from_pairs(const heist::list<std::pair<K,A>>& pairs)
         {
-            return pairs.template foldl<map<K, A>>([] (const map<K, A>& m, const std::pair<K, A>& ka) {
+            return pairs.template foldl<multimap<K, A>>([] (const multimap<K, A>& m, const std::pair<K, A>& ka) {
                     return m.insert(ka.first, ka.second);
-                }, map<K, A>());
+                }, multimap<K, A>());
         }
 
     public:
         class iterator {
-            friend class map<K,A>;
+            friend class multimap<K,A>;
         private:
-            iterator(typename set<entry>::iterator it) : it(it) {}
+            iterator(typename set<entry>::iterator it, supply<long long> sup) : it(it), sup(sup) {}
             typename set<entry>::iterator it;
+            supply<long long> sup;
         public:
-            map<K, A> remove() const
+            multimap<K, A> remove() const
             {
-                return map<K, A>(it.remove());
+                return multimap<K, A>(it.remove(), sup);
             }
 
             boost::optional<iterator> next() const {
                 auto oit = it.next();
                 if (oit)
-                    return boost::make_optional(iterator(oit.get()));
+                    return boost::make_optional(iterator(oit.get(), sup));
                 else
                     return boost::optional<iterator>();
             }
@@ -75,7 +87,7 @@ namespace heist {
             boost::optional<iterator> prev() const {
                 auto oit = it.prev();
                 if (oit)
-                    return boost::make_optional(iterator(oit.get()));
+                    return boost::make_optional(iterator(oit.get(), sup));
                 else
                     return boost::optional<iterator>();
             }
@@ -84,34 +96,36 @@ namespace heist {
             const A& get_value() const {return it.get().oa.get();}
         };
 
-        map() {}
+        multimap() {}
 
-        map(const heist::list<std::pair<K,A>>& pairs) {
+        multimap(const heist::list<std::pair<K,A>>& pairs) {
             *this = from_pairs(pairs);
         }
 
-        map(const heist::list<std::tuple<K,A>>& tuples) {
+        multimap(const heist::list<std::tuple<K,A>>& tuples) {
             *this = from_list(tuples);
         }
 
-        map(std::initializer_list<std::pair<K,A>> il) {
+        multimap(std::initializer_list<std::pair<K,A>> il) {
             *this = from_pairs(heist::list<std::pair<K,A>>(il));
         }
 
-        map<K, A> insert(K k, A a) const {
-            return map<K, A>(entries.insert(entry(k, a)));
+        multimap<K, A> insert(K k, A a) const {
+            auto p = sup.split2();
+            long long unique = std::get<0>(p).get();
+            return multimap<K, A>(entries.insert(entry(k, unique, a)), std::get<1>(p));
         }
 
-        map<K, A> remove(K k) const {
+        multimap<K, A> remove(K k) const {
             auto oit = find(k);
             return oit ? oit.get().remove()
-                       : map<K, A>(*this);
+                       : multimap<K, A>(*this);
         }
 
         boost::optional<iterator> begin() const {
             auto oit = entries.begin();
             if (oit)
-                return boost::make_optional(iterator(oit.get()));
+                return boost::make_optional(iterator(oit.get(), sup));
             else
                 return boost::optional<iterator>();
         };
@@ -119,7 +133,7 @@ namespace heist {
         boost::optional<iterator> end() const {
             auto oit = entries.end();
             if (oit)
-                return boost::make_optional(iterator(oit.get()));
+                return boost::make_optional(iterator(oit.get(), sup));
             else
                 return boost::optional<iterator>();
         };
@@ -131,7 +145,7 @@ namespace heist {
         boost::optional<iterator> lower_bound(const K& k) const {
             auto oit = entries.lower_bound(entry(k));
             if (oit)
-                return boost::make_optional(iterator(oit.get()));
+                return boost::make_optional(iterator(oit.get(), sup));
             else
                 return boost::optional<iterator>();
         }
@@ -143,63 +157,10 @@ namespace heist {
         boost::optional<iterator> upper_bound(const K& k) const {
             auto oit = entries.upper_bound(entry(k));
             if (oit)
-                return boost::make_optional(iterator(oit.get()));
+                return boost::make_optional(iterator(oit.get(), sup));
             else
                 return boost::optional<iterator>();
         }
-
-        boost::optional<iterator> find(const K& k) const {
-            auto oit = entries.find(entry(k));
-            if (oit)
-                return boost::make_optional(iterator(oit.get()));
-            else
-                return boost::optional<iterator>();
-        }
-
-        boost::optional<A> lookup(const K& k) const {
-            auto it0 = find(k);
-            if (it0)
-                return boost::make_optional(it0.get().get_value());
-            else
-                return boost::optional<A>();
-        }
-
-        /*!
-         * Alter the specified entry in the map, where boost::optional<A>() means
-         * 'not present'.
-         */
-        map<K, A> alter(const K& k, std::function<boost::optional<A>(boost::optional<A>)> f) const {
-            auto it0 = find(k);
-            if (it0) {
-                auto it = it0.get();
-                auto newOA = f(boost::make_optional(it.get_value()));
-                if (newOA)
-                    return insert(k, newOA.get());
-                else
-                    return it.remove();
-            }
-            else {
-                auto newOA = f(boost::optional<A>());
-                if (newOA)
-                    return insert(k, newOA.get());
-                else
-                    return *this;
-            }
-        }
-
-        /*!
-         * Adjust the specified entry in the map if it's present, no-op otherwise.
-         */
-        map<K, A> adjust(const K& k, std::function<A(A)> f) const {
-            auto it0 = find(k);
-            if (it0)
-                return insert(k, f(it0.get().get_value()));
-            else
-                return *this;
-        }
-
-        bool operator == (const map<K,A>& other) const { return entries == other.entries; }
-        bool operator != (const map<K,A>& other) const { return entries != other.entries; }
 
         heist::list<std::tuple<K, A>> to_list() const {
             return entries.to_list().map(
@@ -227,17 +188,17 @@ namespace heist {
          * map a function over the map elements.
          */
         template <class Fn>
-        map<K, typename std::result_of<Fn(A)>::type> map_(const Fn& f) const {
+        multimap<K, typename std::result_of<Fn(A)>::type> map(const Fn& f) const {
             typedef typename std::result_of<Fn(A)>::type B;
-            return this->to_list().template foldl<map<K, B>>([f] (const map<K, B>& m, std::tuple<K, A> ka) {
+            return this->to_list().template foldl<multimap<K, B>>([f] (const multimap<K, B>& m, std::tuple<K, A> ka) {
                     return m.insert(std::get<0>(ka), f(std::get<1>(ka)));
-                }, map<K, B>());
+                }, multimap<K, B>());
         }
 
         template <class B>
         static
         B foldl(std::function<B(const B&, const K&, const A&)> f, B a,
-            boost::optional<typename heist::map<K,A>::iterator> oit)
+            boost::optional<typename heist::multimap<K,A>::iterator> oit)
         {
             while (oit) {
                 auto it = oit.get();
@@ -259,31 +220,14 @@ namespace heist {
         /*!
          * Monoidal append = set union.
          */
-        map<K, A> operator + (const map<K, A>& other) const {
-            return other.foldl<map<K, A>>([] (const map<K, A>& m, const K& k, const A& a)
+        multimap<K, A> operator + (const multimap<K, A>& other) const {
+            return other.foldl<multimap<K, A>>([] (const multimap<K, A>& m, const K& k, const A& a)
                       {return m.insert(k, a);}, *this);
-        }
-
-        /*!
-         * Return this map minus the specified keys.
-         */
-        map<K, A> operator - (const list<K>& keys) const {
-            return keys.foldl<map<K,A>>(
-                [] (const map<K, A>& m, const K& key) {
-                    return m.remove(key);
-                }, *this);
-        }
-
-        /*!
-         * Return this map minus the keys from the second map.
-         */
-        map<K, A> operator - (const map<K, A>& other) const {
-            return *this - other.keys();
         }
     };
 
     template <class K, class A>
-    std::ostream& operator << (std::ostream& os, const heist::map<K, A>& m)
+    std::ostream& operator << (std::ostream& os, const heist::multimap<K, A>& m)
     {
         os << "{";
         bool first = true;

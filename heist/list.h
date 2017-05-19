@@ -296,7 +296,7 @@ namespace heist {
             A foldl1(std::function<A(const A&, const A&)> f) const
             {
                 assert(*this);
-                return foldl(f, this->head(), this->tail());
+                return this->tail().foldl(f, this->head());
             }
 
             /*!
@@ -305,7 +305,7 @@ namespace heist {
             A foldr1(std::function<A(const A&, const A&)> f) const
             {
                 assert(*this);
-                return foldr(f, this->head(), this->tail());
+                return this->tail().foldr(f, this->head());
             }
 
             /*!
