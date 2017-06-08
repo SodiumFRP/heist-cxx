@@ -96,17 +96,17 @@ namespace heist {
             const A& get_value() const {return it.get().oa.get();}
         };
 
-        multimap() {}
+        multimap() : sup(0) {}
 
-        multimap(const heist::list<std::pair<K,A>>& pairs) {
+        multimap(const heist::list<std::pair<K,A>>& pairs) : sup(0) {
             *this = from_pairs(pairs);
         }
 
-        multimap(const heist::list<std::tuple<K,A>>& tuples) {
+        multimap(const heist::list<std::tuple<K,A>>& tuples) : sup(0) {
             *this = from_list(tuples);
         }
 
-        multimap(std::initializer_list<std::pair<K,A>> il) {
+        multimap(std::initializer_list<std::pair<K,A>> il) : sup(0) {
             *this = from_pairs(heist::list<std::pair<K,A>>(il));
         }
 
