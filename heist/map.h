@@ -260,7 +260,7 @@ namespace heist {
          * Monoidal append = set union.
          */
         map<K, A> operator + (const map<K, A>& other) const {
-            return other.foldl<map<K, A>>([] (const map<K, A>& m, const K& k, const A& a)
+            return other.template foldl<map<K, A>>([] (const map<K, A>& m, const K& k, const A& a)
                       {return m.insert(k, a);}, *this);
         }
 
@@ -268,7 +268,7 @@ namespace heist {
          * Return this map minus the specified keys.
          */
         map<K, A> operator - (const list<K>& keys) const {
-            return keys.foldl<map<K,A>>(
+            return keys.template foldl<map<K,A>>(
                 [] (const map<K, A>& m, const K& key) {
                     return m.remove(key);
                 }, *this);

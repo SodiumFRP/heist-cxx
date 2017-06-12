@@ -478,7 +478,7 @@ namespace heist {
         template <class Fn>
         set<typename std::result_of<Fn(A)>::type> map(const Fn& f) const {
             typedef typename std::result_of<Fn(A)>::type B;
-            return to_list().foldl<set<B>, A>([=] (const set<B>& s, A a) {
+            return to_list().template foldl<set<B>, A>([f] (const set<B>& s, A a) {
                     return s.insert(f(a));
                 }, set<B>());
         }

@@ -79,7 +79,7 @@ namespace heist {
 
     template <class A> class list;
     template <class A> list<A> concat(list<list<A>> lists);
-    template <class A> list<A> catOptional(list<boost::optional<A>> xs);
+    template <class A> list<A> cat_optional(list<boost::optional<A>> xs);
 
     template <class A> class list
     {
@@ -217,8 +217,8 @@ namespace heist {
              */
             template <class Fn>
             list<typename std::result_of<Fn(A)>::type::value_type>
-                    mapOptional(const Fn& f) const {
-                return catOptional(this->map(f));
+                    map_optional(const Fn& f) const {
+                return cat_optional(this->map(f));
             }
 
             std::tuple<heist::list<A>, heist::list<A>> splitAt(int i) const {

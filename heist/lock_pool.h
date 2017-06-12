@@ -33,7 +33,7 @@ namespace heist {
             }
 #else
             bool initialized;
-            std::mutex m;
+            std::recursive_mutex m;
             spin_lock() : initialized(true) {
             }
             inline void lock() {
