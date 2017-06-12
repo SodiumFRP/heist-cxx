@@ -20,7 +20,7 @@ class supply
     private:
         struct common_t {
             common_t(A nextValue, const std::function<A(A)>& succ) : nextValue(nextValue), succ(succ) {}
-            std::mutex mutex;
+            std::recursive_mutex mutex;
             A nextValue;
             std::function<A(A)> succ;
         };
