@@ -26,7 +26,7 @@ namespace heist {
                 inline void lock() const   {const_cast<pooled_locker*>(this)->mutex->lock();}
                 inline void unlock() const {const_cast<pooled_locker*>(this)->mutex->unlock();}
             private:
-                std::mutex* mutex;
+                std::recursive_mutex* mutex;
         };
     }
 }

@@ -9,7 +9,7 @@
 namespace heist {
     namespace impl {
         #define NO_OF_MUTEXES 61
-        static std::mutex* bank[NO_OF_MUTEXES];
+        static std::recursive_mutex* bank[NO_OF_MUTEXES];
         static volatile int nextBank = 0;
         
         static inline int advance(int nextBank)
@@ -25,7 +25,7 @@ namespace heist {
             int chosen = nextBank;
             nextBank = advance(nextBank);
             if (bank[chosen] == NULL)
-                bank[chosen] = new std::mutex;
+                bank[chosen] = new std::recursive_mutex;
             mutex = bank[chosen];
         }
     }

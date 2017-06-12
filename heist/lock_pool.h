@@ -7,7 +7,12 @@
 #define _HEIST_LOCKPOOL_H_
 
 #ifdef __APPLE__
+#include <AvailabilityMacros.h>
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+#include <os/lock.h>
+#else
 #include <libkern/OSAtomic.h>
+#endif
 #elif defined(__TI_COMPILER_VERSION__)
 #else
 #include <mutex>
@@ -22,6 +27,17 @@ namespace heist {
             inline void lock() {}
             inline void unlock() {}
 #elif defined(__APPLE__)
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+	    os_unfair_lock sl;
+	    spin_lock() : sl() {
+	    }
+            inline void lock() {
+                os_unfair_lock_lock(&sl);
+            }
+            inline void unlock() {
+                os_unfair_lock_unlock(&sl);
+            }
+#else
             OSSpinLock sl;
             spin_lock() : sl(OS_SPINLOCK_INIT) {
             }
@@ -31,6 +47,7 @@ namespace heist {
             inline void unlock() {
                 OSSpinLockUnlock(&sl);
             }
+#endif
 #else
             bool initialized;
             std::recursive_mutex m;
