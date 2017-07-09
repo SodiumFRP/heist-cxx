@@ -249,7 +249,7 @@ namespace heist {
                 return false;
             }
 
-            std::list<A> toStdList() const {
+            std::list<A> to_std_list() const {
                 std::list<A> out;
                 auto xs = *this;
                 while (xs) {
