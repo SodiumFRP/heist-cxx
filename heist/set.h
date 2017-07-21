@@ -515,6 +515,17 @@ namespace heist {
             }
             return out;
         }
+
+        set<A> filter(std::function<bool(const A&)> pred) const
+        {
+            set<A> out;
+            for (auto o_iter = begin(); o_iter; o_iter = o_iter.get().next()) {
+                const auto& value = o_iter.get().get();
+                if (pred(value))
+                    out = out.insert(value);
+            }
+            return out;
+        }
     };
 }  // end namespace
 

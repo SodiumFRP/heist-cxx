@@ -224,6 +224,30 @@ namespace heist {
             return other.foldl<multimap<K, A>>([] (const multimap<K, A>& m, const K& k, const A& a)
                       {return m.insert(k, a);}, *this);
         }
+
+        multimap<K, A> filter(std::function<bool(const A&)> pred) const
+        {
+            multimap<K, A> out;
+            for (auto o_iter = begin(); o_iter; o_iter = o_iter.get().next()) {
+                const auto& key = o_iter.get().get_key();
+                const auto& value = o_iter.get().get_value();
+                if (pred(value))
+                    out = out.insert(key, value);
+            }
+            return out;
+        }
+
+        multimap<K, A> filter_with_key(std::function<bool(const K&, const A&)> pred) const
+        {
+            multimap<K, A> out;
+            for (auto o_iter = begin(); o_iter; o_iter = o_iter.get().next()) {
+                const auto& key = o_iter.get().get_key();
+                const auto& value = o_iter.get().get_value();
+                if (pred(key, value))
+                    out = out.insert(key, value);
+            }
+            return out;
+        }
     };
 
     template <class K, class A>

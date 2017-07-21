@@ -280,6 +280,30 @@ namespace heist {
         map<K, A> operator - (const map<K, A>& other) const {
             return *this - other.keys();
         }
+
+        map<K, A> filter(std::function<bool(const A&)> pred) const
+        {
+            map<K, A> out;
+            for (auto o_iter = begin(); o_iter; o_iter = o_iter.get().next()) {
+                const auto& key = o_iter.get().get_key();
+                const auto& value = o_iter.get().get_value();
+                if (pred(value))
+                    out = out.insert(key, value);
+            }
+            return out;
+        }
+
+        map<K, A> filter_with_key(std::function<bool(const K&, const A&)> pred) const
+        {
+            map<K, A> out;
+            for (auto o_iter = begin(); o_iter; o_iter = o_iter.get().next()) {
+                const auto& key = o_iter.get().get_key();
+                const auto& value = o_iter.get().get_value();
+                if (pred(key, value))
+                    out = out.insert(key, value);
+            }
+            return out;
+        }
     };
 
     template <class K, class A>
