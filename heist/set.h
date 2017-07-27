@@ -426,6 +426,30 @@ namespace heist {
             return ! (*this == other);
         }
 
+        bool operator < (const set<A>& other) const {
+            boost::optional<set<A>::iterator> it1 = begin();
+            boost::optional<set<A>::iterator> it2 = other.begin();
+            while (it1 && it2) {
+                if (it1.get().get() < it2.get().get()) return true;
+                if (it2.get().get() < it1.get().get()) return false;
+                it1 = it1.get().next();
+                it2 = it2.get().next();
+            }
+            return (bool)it2;
+        }
+
+        bool operator > (const set<A>& other) const {
+            return other < *this;
+        }
+
+        bool operator <= (const set<A>& other) const {
+            return !(*this > other);
+        }
+
+        bool operator >= (const set<A>& other) const {
+            return !(*this < other);
+        }
+
         list<A> to_list() const {
             list<A> acc;
             for (auto it = end(); it; it = it.get().prev())

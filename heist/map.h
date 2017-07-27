@@ -200,6 +200,10 @@ namespace heist {
 
         bool operator == (const map<K,A>& other) const { return entries == other.entries; }
         bool operator != (const map<K,A>& other) const { return entries != other.entries; }
+        bool operator <  (const map<K,A>& other) const { return entries < other.entries; }
+        bool operator >  (const map<K,A>& other) const { return entries > other.entries; }
+        bool operator <= (const map<K,A>& other) const { return entries <= other.entries; }
+        bool operator >= (const map<K,A>& other) const { return entries >= other.entries; }
 
         heist::list<std::tuple<K, A>> to_list() const {
             return entries.to_list().map(
