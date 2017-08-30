@@ -284,7 +284,7 @@ namespace heist {
             template <class B>
             B foldr(std::function<B(const A&,const B&)> f, B b) const
             {
-                auto xs = reverse(*this);
+                auto xs = reverse();
                 while (xs) {
                     b = f(xs.head(), b);
                     xs = xs.tail();
