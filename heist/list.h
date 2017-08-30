@@ -144,33 +144,9 @@ namespace heist {
                 }
                 return !one && !two;
             }
-
+            
             bool operator != (const list<A>& other) const {
                 return !(*this == other);
-            }
-
-            bool operator < (const list<A>& other) const {
-                list<A> one = *this;
-                list<A> two = other;
-                while (one && two) {
-                    if (one.head() < two.head()) return true;
-                    if (two.head() < one.head()) return false;
-                    one = one.tail();
-                    two = two.tail();
-                }
-                return (bool)two;
-            }
-
-            bool operator > (const list<A>& other) const {
-                return other < *this;
-            }
-
-            bool operator <= (const list<A>& other) const {
-                return !(*this > other);
-            }
-
-            bool operator >= (const list<A>& other) const {
-                return !(*this < other);
             }
 
             A operator [] (int ix) const {
@@ -232,7 +208,7 @@ namespace heist {
              * Map then concat.
              */
             template <class Fn>
-            list<typename std::result_of<Fn(A)>::type::value_type> concat_map(const Fn& f) const {
+            list<typename std::result_of<Fn(A)>::type::value_type> concatMap(const Fn& f) const {
                 return concat(this->map(f));
             }
 
@@ -245,7 +221,7 @@ namespace heist {
                 return cat_optional(this->map(f));
             }
 
-            std::tuple<heist::list<A>, heist::list<A>> split_at(int i) const {
+            std::tuple<heist::list<A>, heist::list<A>> splitAt(int i) const {
                 heist::list<A> xs = *this;
                 heist::list<A> fst;
                 while (i > 0 && (bool)xs) {
@@ -308,10 +284,12 @@ namespace heist {
             template <class B>
             B foldr(std::function<B(const A&,const B&)> f, B b) const
             {
-                if (*this)
-                    return f(this->head(), this->tail().foldr(f, b));
-                else
-                    return b;
+                auto xs = reverse(*this);
+                while (xs) {
+                    b = f(xs.head(), b);
+                    xs = xs.tail();
+                }
+                return b;
             }
 
             /*!
@@ -367,8 +345,15 @@ namespace heist {
     template <class A>
     list<A> operator + (const list<A>& one, const list<A>& tother)
     {
-        if (one)
-            return one.head() %= (one.tail() + tother);
+        list<A> xs = one.reverse();
+        if (xs) {
+            list<A> out = tother;
+            while (xs) {
+                out = xs.head() %= out;
+                xs = xs.tail();
+            }
+            return out;
+        }
         else
             return tother;
     }
