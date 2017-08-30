@@ -208,7 +208,7 @@ namespace heist {
              * Map then concat.
              */
             template <class Fn>
-            list<typename std::result_of<Fn(A)>::type::value_type> concatMap(const Fn& f) const {
+            list<typename std::result_of<Fn(A)>::type::value_type> concat_map(const Fn& f) const {
                 return concat(this->map(f));
             }
 
