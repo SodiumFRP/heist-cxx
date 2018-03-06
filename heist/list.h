@@ -144,9 +144,33 @@ namespace heist {
                 }
                 return !one && !two;
             }
-            
+
             bool operator != (const list<A>& other) const {
                 return !(*this == other);
+            }
+
+            bool operator < (const list<A>& other) const {
+                list<A> one = *this;
+                list<A> two = other;
+                while (one && two) {
+                    if (one.head() < two.head()) return true;
+                    if (two.head() < one.head()) return false;
+                    one = one.tail();
+                    two = two.tail();
+                }
+                return (bool)two;
+            }
+
+            bool operator > (const list<A>& other) const {
+                return other < *this;
+            }
+
+            bool operator <= (const list<A>& other) const {
+                return !(*this > other);
+            }
+
+            bool operator >= (const list<A>& other) const {
+                return !(*this < other);
             }
 
             A operator [] (int ix) const {
@@ -221,7 +245,7 @@ namespace heist {
                 return cat_optional(this->map(f));
             }
 
-            std::tuple<heist::list<A>, heist::list<A>> splitAt(int i) const {
+            std::tuple<heist::list<A>, heist::list<A>> split_at(int i) const {
                 heist::list<A> xs = *this;
                 heist::list<A> fst;
                 while (i > 0 && (bool)xs) {
