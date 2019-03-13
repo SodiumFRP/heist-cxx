@@ -550,6 +550,11 @@ namespace heist {
             }
             return out;
         }
+
+        /*!
+         * True if this set contains any elements.
+         */
+        operator bool () const { return (bool)begin(); }
     };
 }  // end namespace
 

@@ -198,12 +198,47 @@ namespace heist {
                 return *this;
         }
 
-        bool operator == (const map<K,A>& other) const { return entries == other.entries; }
-        bool operator != (const map<K,A>& other) const { return entries != other.entries; }
-        bool operator <  (const map<K,A>& other) const { return entries < other.entries; }
-        bool operator >  (const map<K,A>& other) const { return entries > other.entries; }
-        bool operator <= (const map<K,A>& other) const { return entries <= other.entries; }
-        bool operator >= (const map<K,A>& other) const { return entries >= other.entries; }
+        bool operator == (const map<K, A>& other) const {
+            boost::optional<map<K, A>::iterator> it1 = begin();
+            boost::optional<map<K, A>::iterator> it2 = other.begin();
+            while (it1 && it2) {
+                if (!(it1.get().get_key() == it2.get().get_key())) return false;
+                if (!(it1.get().get_value() == it2.get().get_value())) return false;
+                it1 = it1.get().next();
+                it2 = it2.get().next();
+            }
+            return !it1 && !it2;
+        }
+
+        bool operator != (const map<K, A>& other) const {
+            return ! (*this == other);
+        }
+
+        bool operator < (const map<K, A>& other) const {
+            boost::optional<map<K, A>::iterator> it1 = begin();
+            boost::optional<map<K, A>::iterator> it2 = other.begin();
+            while (it1 && it2) {
+                if (it1.get().get_key() < it2.get().get_key()) return true;
+                if (it2.get().get_key() < it1.get().get_key()) return false;
+                if (it1.get().get_value() < it2.get().get_value()) return true;
+                if (it2.get().get_value() < it1.get().get_value()) return false;
+                it1 = it1.get().next();
+                it2 = it2.get().next();
+            }
+            return (bool)it2;
+        }
+
+        bool operator > (const map<K, A>& other) const {
+            return other < *this;
+        }
+
+        bool operator <= (const map<K, A>& other) const {
+            return !(*this > other);
+        }
+
+        bool operator >= (const map<K, A>& other) const {
+            return !(*this < other);
+        }
 
         heist::list<std::tuple<K, A>> to_list() const {
             return entries.to_list().map(
@@ -308,6 +343,11 @@ namespace heist {
             }
             return out;
         }
+
+        /*!
+         * True if this map contains any elements.
+         */
+        operator bool () const { return (bool)entries; }
     };
 
     template <class K, class A>
