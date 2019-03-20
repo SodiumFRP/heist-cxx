@@ -162,9 +162,9 @@ namespace heist {
                 return boost::optional<iterator>();
         }
 
-        bool operator == (const multimap<K, A><A>& other) const {
-            boost::optional<multimap<K, A><A>::iterator> it1 = begin();
-            boost::optional<multimap<K, A><A>::iterator> it2 = other.begin();
+        bool operator == (const multimap<K, A>& other) const {
+            boost::optional<multimap<K, A>::iterator> it1 = begin();
+            boost::optional<multimap<K, A>::iterator> it2 = other.begin();
             while (it1 && it2) {
                 if (!(it1.get().get_key() == it2.get().get_key())) return false;
                 if (!(it1.get().get_value() == it2.get().get_value())) return false;
@@ -174,13 +174,13 @@ namespace heist {
             return !it1 && !it2;
         }
 
-        bool operator != (const multimap<K, A><A>& other) const {
+        bool operator != (const multimap<K, A>& other) const {
             return ! (*this == other);
         }
 
-        bool operator < (const multimap<K, A><A>& other) const {
-            boost::optional<multimap<K, A><A>::iterator> it1 = begin();
-            boost::optional<multimap<K, A><A>::iterator> it2 = other.begin();
+        bool operator < (const multimap<K, A>& other) const {
+            boost::optional<multimap<K, A>::iterator> it1 = begin();
+            boost::optional<multimap<K, A>::iterator> it2 = other.begin();
             while (it1 && it2) {
                 if (it1.get().get_key() < it2.get().get_key()) return true;
                 if (it2.get().get_key() < it1.get().get_key()) return false;
@@ -192,15 +192,15 @@ namespace heist {
             return (bool)it2;
         }
 
-        bool operator > (const multimap<K, A><A>& other) const {
+        bool operator > (const multimap<K, A>& other) const {
             return other < *this;
         }
 
-        bool operator <= (const multimap<K, A><A>& other) const {
+        bool operator <= (const multimap<K, A>& other) const {
             return !(*this > other);
         }
 
-        bool operator >= (const multimap<K, A><A>& other) const {
+        bool operator >= (const multimap<K, A>& other) const {
             return !(*this < other);
         }
 
